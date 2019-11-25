@@ -31,12 +31,45 @@ public class HttpConnection implements Runnable{
         try {
             System.out.println("Starting new HTTP connection with "+socket.getInetAddress().toString());
             dos = new DataOutputStream(socket.getOutputStream());
-            dos.write("200 OK".getBytes());
-            dos.flush();
+                      
+            
             BufferedReader bis = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String line = bis.readLine();
-            dos.write(("ECO "+line).getBytes());
-            dos.flush();
+            String []partes = line.split(" ");
+            if(partes!=null && partes.length==3){
+                do{
+                    line= bis.readLine();
+                    System.out.println("HTTP HEADER: "+line);
+
+                }while(line!=null && line.length()>0);
+                
+                if(partes[0].equalsIgnoreCase("get")){
+                
+                    dos.write(("HTTP/1.1 200 OK\r\ncontent-type:text/html\r\n\r\n<html><body>Hola</body></html>").getBytes());
+                    dos.flush();
+                }else{
+                    dos.write(("HTTP/1.1 405 Method Not Allowed\r\n\r\n").getBytes());
+                    dos.flush();
+                }
+                
+            }else{
+                do{
+                    line= bis.readLine();
+                    System.out.println("HTTP HEADER: "+line);
+
+                }while(line!=null && line.length()>0);
+                
+                dos.write(("HTTP/1.1 400 Bad Request\r\n\r\n").getBytes());
+                dos.flush();
+            }
+            
+            
+            dos.close();
+            bis.close();
+            socket.close();          
+            
+            
+            
         } catch (IOException ex) {
             Logger.getLogger(HttpConnection.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
